@@ -342,7 +342,6 @@ HONG KONG TAXI EXAM MEMORIZATION GUIDE
 237. 貿易廣場 - 長沙灣
 
 購物商場：
-268. 南豐紗廠 - 白田壩街
 274. V Walk - 深旺道
 
 【觀塘秀茂坪區】Kwun Tong & Sau Mau Ping
@@ -532,8 +531,6 @@ HONG KONG TAXI EXAM MEMORIZATION GUIDE
 旅遊景點：
 78. 龍躍頭文物徑 - 粉嶺
 
-大專院校：
-319. 聖方濟各大學 - 翠嶺里
 
 【荃灣葵涌區】Tsuen Wan & Kwai Chung
 --------------------------------------------
@@ -557,6 +554,9 @@ HONG KONG TAXI EXAM MEMORIZATION GUIDE
 
 酒店：
 135. 荃灣西如心酒店 - 楊屋道
+
+購物商場：
+268. 南豐紗廠 - 白田壩街
 
 【青衣區】Tsing Yi
 --------------------------------------------
@@ -589,6 +589,9 @@ HONG KONG TAXI EXAM MEMORIZATION GUIDE
 酒店：
 152. 香港九龍東皇冠假日酒店 - 將軍澳
 168. WM酒店 - 西貢
+
+大專院校：
+319. 聖方濟各大學 - 翠嶺里
 
 【西貢區】Sai Kung
 --------------------------------------------
