@@ -178,8 +178,8 @@ class _MemorizationGuideScreenState extends State<MemorizationGuideScreen> with 
           districtWidgets[currentDistrict]!.add(tile);
         }
       }
-      // Route entries (e.g., "320. 沙田富豪花園 → 屯門市廣場")
-      else if (RegExp(r'^\d+\.\s+.+\s+→\s+.+$').hasMatch(line)) {
+      // Route entries (e.g., "- 320. 沙田富豪花園 → 屯門市廣場")
+      else if (RegExp(r'^-?\s*\d+\.\s+.+\s+→\s+.+$').hasMatch(line)) {
         final nextLine = i + 1 < lines.length ? lines[i + 1] : '';
         currentWidgets.add(_buildRouteTile(line, nextLine));
         if (nextLine.trim().startsWith('路線：')) {
@@ -424,69 +424,194 @@ class _MemorizationGuideScreenState extends State<MemorizationGuideScreen> with 
   }
   
   Widget _buildRouteTile(String line, String nextLine) {
+    // Remove leading dash if present
+    line = line.trim().replaceFirst(RegExp(r'^-\s*'), '');
+    
+    // Parse the basic route information
     final match = RegExp(r'^(\d+)\.\s+(.+?)\s+→\s+(.+)$').firstMatch(line.trim());
     if (match != null) {
       final number = match.group(1)!;
       final start = match.group(2)!;
-      final end = match.group(3)!;
+      final end = match.group(3)!.trim();
       
       String route = '';
+      List<String> roadSegments = [];
+      
+      // Check if there's route info on the next line
       if (nextLine.trim().startsWith('路線：')) {
         route = nextLine.trim().substring(3).trim();
+        // Split the route by comma and "及"
+        roadSegments = route.split(RegExp(r'[、,]|及'))
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
       }
       
       return Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-        child: ExpansionTile(
-          leading: CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-            radius: 18,
-            child: Text(
-              number,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSecondaryContainer,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          title: Column(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(start, style: const TextStyle(fontSize: 14)),
+              // Route header with number
               Row(
                 children: [
-                  const Icon(Icons.arrow_downward, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Expanded(
+                  CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    radius: 22,
                     child: Text(
-                      end,
-                      style: const TextStyle(fontSize: 14),
+                      number,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          start,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Icon(Icons.arrow_downward, size: 14, color: Colors.grey[600]),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                end,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
+              
+              if (route.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                // Main navigation button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _openRouteInMaps(start, end),
+                    icon: const Icon(Icons.directions, size: 20),
+                    label: Text(
+                      '導航整條路線',
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Route details
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '路線：',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        route,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Individual road segments
+                Text(
+                  '個別路段導航：',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: roadSegments.map((segment) {
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => _openInMaps(segment),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                size: 16,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                segment,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
             ],
           ),
-          trailing: IconButton(
-            icon: const Icon(Icons.directions, size: 20),
-            onPressed: () => _openRouteInMaps(start, end),
-            tooltip: '導航路線',
-          ),
-          children: route.isNotEmpty ? [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              color: Theme.of(context).colorScheme.surface,
-              child: Text(
-                '路線：$route',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).textTheme.bodySmall?.color,
-                ),
-              ),
-            ),
-          ] : [],
         ),
       );
     }
